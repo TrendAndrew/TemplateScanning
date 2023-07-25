@@ -6,31 +6,19 @@ pool:
   vmImage: ubuntu-latest
 
 steps:
-- script:
-  echo https://conformity.trend-us-1.cloudone.trendmicro.com/api/template-scanner/scan
-  echo $(C1 API Secret)
-displayName: 'Run a one-line script'
-
 - script: |
-    echo Add other tasks to build, test, and deploy your project.
-    echo See https://aka.ms/yaml
-  displayName: 'Run a multi-line script'
-- task: InvokeRESTAPI@1
-  inputs:
-    connectionType: 'connectedServiceName'
-    method: 'POST'
-    waitForCompletion: 'false'
-# Invoke REST API v1
-# Invoke a REST API as a part of your pipeline.
-- task: InvokeRESTAPI@1
-  inputs:
-    connectionType: 'connectedServiceName' # 'connectedServiceName' | 'connectedServiceNameARM'. Alias: connectedServiceNameSelector. Required. Connection type. Default: connectedServiceName.
-    serviceConnection: # string. Alias: connectedServiceName | genericService. Required when connectedServiceNameSelector = connectedServiceName. Generic service connection. 
-    #azureServiceConnection: # string. Alias: connectedServiceNameARM | azureSubscription. Required when connectedServiceNameSelector = connectedServiceNameARM. Azure subscription. 
-    method: 'POST' # 'OPTIONS' | 'GET' | 'HEAD' | 'POST' | 'PUT' | 'DELETE' | 'TRACE' | 'PATCH'. Required. Method. Default: POST.
-    #headers: # string. Headers. 
-    #body: # string. Optional. Use when method != GET && method != HEAD. Body. 
-    #urlSuffix: # string. URL suffix and parameters. 
-  # Advanced
-    waitForCompletion: 'false' # 'true' | 'false'. Required. Completion event. Default: false.
-    #successCriteria: # string. Optional. Use when waitForCompletion = false. Success criteria.
+    region="us-west-2"
+    file_path="s3-bucket.tf"
+    contents=$(cat ${file_path} | jq '.' -MRs)
+    payload="{\"data\":{\"attributes\":{\"type\":\"cloudformation-template\",\"contents\":${contents}}}}"
+
+    echo Request:
+    echo ${payload} | jq '.' -M
+
+    echo Response:
+    curl -s -X POST \
+        -H "Authorization: ApiKey $(C1 API Secret)" \
+        -H "Content-Type: application/vnd.api+json" \
+        https://conformity.$(region).cloudone.trendmicro.com/api/template-scanner/scan \
+        --data-binary "${payload}" | jq '.' -M
+  displayName: 'Scan Terraform Template'
