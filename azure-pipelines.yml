@@ -1,7 +1,3 @@
-# Starter pipeline
-# Start with a minimal pipeline that you can customize to build and deploy your code.
-# Add steps that build, run tests, deploy, and more:
-# https://aka.ms/yaml
 
 trigger:
 - main
@@ -10,10 +6,31 @@ pool:
   vmImage: ubuntu-latest
 
 steps:
-- script: echo Hello, world!
-  displayName: 'Run a one-line script'
+- script:
+  echo https://conformity.trend-us-1.cloudone.trendmicro.com/api/template-scanner/scan
+  echo $(C1 API Secret)
+displayName: 'Run a one-line script'
 
 - script: |
     echo Add other tasks to build, test, and deploy your project.
     echo See https://aka.ms/yaml
   displayName: 'Run a multi-line script'
+- task: InvokeRESTAPI@1
+  inputs:
+    connectionType: 'connectedServiceName'
+    method: 'POST'
+    waitForCompletion: 'false'
+# Invoke REST API v1
+# Invoke a REST API as a part of your pipeline.
+- task: InvokeRESTAPI@1
+  inputs:
+    connectionType: 'connectedServiceName' # 'connectedServiceName' | 'connectedServiceNameARM'. Alias: connectedServiceNameSelector. Required. Connection type. Default: connectedServiceName.
+    serviceConnection: # string. Alias: connectedServiceName | genericService. Required when connectedServiceNameSelector = connectedServiceName. Generic service connection. 
+    #azureServiceConnection: # string. Alias: connectedServiceNameARM | azureSubscription. Required when connectedServiceNameSelector = connectedServiceNameARM. Azure subscription. 
+    method: 'POST' # 'OPTIONS' | 'GET' | 'HEAD' | 'POST' | 'PUT' | 'DELETE' | 'TRACE' | 'PATCH'. Required. Method. Default: POST.
+    #headers: # string. Headers. 
+    #body: # string. Optional. Use when method != GET && method != HEAD. Body. 
+    #urlSuffix: # string. URL suffix and parameters. 
+  # Advanced
+    waitForCompletion: 'false' # 'true' | 'false'. Required. Completion event. Default: false.
+    #successCriteria: # string. Optional. Use when waitForCompletion = false. Success criteria.
